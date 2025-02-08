@@ -112,14 +112,25 @@ def evaluate_model(y_test, y_pred, y_pred_proba=None):
 
     print("") # Blank line for separation
 
+def find_best_threshold(y_test, y_probs):
+    """Find the best threshold using Youden’s J statistic from the ROC curve."""
+    fpr, tpr, thresholds = roc_curve(y_test, y_probs)
+    optimal_idx = (tpr - fpr).argmax()
+    return thresholds[optimal_idx]
+
 # Model Training Functions
 def logistic_regression(X_train_scaled, y_train, X_test_scaled, y_test):
     """Train and evaluate a Logistic Regression model."""
     logreg = LogisticRegression(max_iter=500)
     logreg.fit(X_train_scaled, y_train)
-    y_pred = logreg.predict(X_test_scaled)
+
+    # Get predicted probabilities
     y_pred_proba = logreg.predict_proba(X_test_scaled)[:,1]
     
+    # Find best threshold
+    best_threshold = find_best_threshold(y_test, y_pred_proba)
+    y_pred = (y_pred_proba >= best_threshold).astype(int)
+
     print("Logistic Regression")
     evaluate_model(y_test, y_pred, y_pred_proba)
 
@@ -128,9 +139,12 @@ def decision_tree(X_train, y_train, X_test, y_test, X):
     dt_classifier = DecisionTreeClassifier(criterion="gini", max_depth=40, random_state=42)
     dt_classifier.fit(X_train, y_train)
 
-    # Make predictions
-    y_pred = dt_classifier.predict(X_test)
+    # Get predicted probabilities
     y_pred_proba = dt_classifier.predict_proba(X_test)[:,1]
+
+    # Find best threshold
+    best_threshold = find_best_threshold(y_test, y_pred_proba)
+    y_pred = (y_pred_proba >= best_threshold).astype(int)
 
     print("Decision Tree")
     evaluate_model(y_test, y_pred, y_pred_proba)
@@ -145,9 +159,12 @@ def random_forest(X_train, y_train, X_test, y_test):
     rf_classifier = RandomForestClassifier(n_estimators=200, criterion="gini", max_depth=10, min_samples_split=5, random_state=42)
     rf_classifier.fit(X_train, y_train)
 
-    # Make predictions
-    y_pred = rf_classifier.predict(X_test)
+    # Get predicted probabilities
     y_pred_proba = rf_classifier.predict_proba(X_test)[:,1]
+
+    # Find the best threshold using Youden’s J statistic (from ROC Curve)
+    best_threshold = find_best_threshold(y_test, y_pred_proba)
+    y_pred = (y_pred_proba >= best_threshold).astype(int)
 
     print("Random Forest")
     evaluate_model(y_test, y_pred, y_pred_proba)
@@ -158,8 +175,11 @@ def knn(X_train_scaled, y_train, X_test_scaled, y_test):
     knn_classifier.fit(X_train_scaled, y_train)
 
     # Make predictions
-    y_pred = knn_classifier.predict(X_test_scaled)
     y_pred_proba = knn_classifier.predict_proba(X_test_scaled)[:,1]
+
+    # Find best threshold
+    best_threshold = find_best_threshold(y_test, y_pred_proba)
+    y_pred = (y_pred_proba >= best_threshold).astype(int)
 
     print("K-Nearest Neighbors")
     evaluate_model(y_test, y_pred, y_pred_proba)
@@ -170,8 +190,11 @@ def svm(X_train_scaled, y_train, X_test_scaled, y_test):
     svm_classifier.fit(X_train_scaled, y_train)
 
     # Make predictions
-    y_pred = svm_classifier.predict(X_test_scaled)
     y_pred_proba = svm_classifier.decision_function(X_test_scaled)
+
+    # Find best threshold
+    best_threshold = find_best_threshold(y_test, y_pred_proba)
+    y_pred = (y_pred_proba >= best_threshold).astype(int)
 
     print("Support Vector Machine")
     evaluate_model(y_test, y_pred, y_pred_proba)
