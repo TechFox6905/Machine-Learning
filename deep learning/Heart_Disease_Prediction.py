@@ -94,7 +94,7 @@ def plot_history(history):
 def main():
     X_train, X_test, y_train, y_test, input_shape = preprocessing(data)
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape, input_shape)
-    '''
+
     model = build_model(input_shape)
     model.summary()
     
@@ -108,6 +108,6 @@ def main():
 
     test_loss, test_acc = model.evaluate(X_test, y_test)
     print(f'Test accuracy: {test_acc}')
-'''
+
 
 main()
